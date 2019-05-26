@@ -35,7 +35,7 @@ td {
 
 td.today_td {
     background-color: yellow;
-    color: white;
+    color: black;
 }
 td:first-child {
     color: red;

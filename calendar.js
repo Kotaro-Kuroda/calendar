@@ -9,12 +9,10 @@ const yearButton = document.getElementById("year") //idがyearのボタン
 const monthButton = document.getElementById("month") //idがmonthのボタン
 const todayButton = document.getElementById("today") //idがtodayのボタン
 const dayButton = document.getElementById("dayButton")
-
+const oneday = document.getElementById("oneday")
 const time = document.getElementById("time")
 const addButton = document.getElementById("add")
-let timeHtml = ""
 let scheduleHtml = ""
-
 let timeString = ""
 
 const config = {
@@ -118,6 +116,34 @@ function createCalendar(year, month) {
     calendarHtml += '</table>'
     calendarHtml += '</center>'
     return calendarHtml
+}
+
+function createDateSchedule(date) {
+    oneday.textContent = date
+    let timeHtml = ""
+    timeHtml += "<table rules='cols' id='timetable'>"
+
+    for(let i = 0; i < 96; i++) {
+        const j = i.toString()
+        if (i % 4 == 0) {
+            if(i >= 0 && i < 10) {
+            timeString = "&nbsp&nbsp" + (i / 4) .toString() + ":" + "00"
+            }
+            else {
+            timeString = (i / 4).toString() + ":" + "00"
+            }
+
+            timeHtml += "<tr>" + "<td class='timetd'>" + timeString + "</td>" + "<td class='schedule' id=" + j + ">" + "<hr>" + "</td>" + "</tr>"
+        } else {
+            timeHtml += "<tr>" + "<td class='timetd'>" + "</td>" + "<td class='schedule' id=" + j + ">" + "</td>" + "</tr>"
+        }
+        
+    }
+
+    timeHtml += "<tr>" + "<td class='timetd'>" + "&nbsp&nbsp" + "0:00" + "</td>" + "<td class='schedule'>" + "<hr>" + "</td>" + "</tr>"
+    timeHtml += "</table>"
+    time.innerHTML = timeHtml
+    console.log("hello")
 }
 /*
 function prevCalendar() {
@@ -252,6 +278,41 @@ function displayByMonth() {
     showCalendar(year, month)
 }
 
+function displayByDate() {
+    yearButton.classList.remove("active")
+    monthButton.classList.remove("active")
+    dayButton.classList.add("active")
+    reset()
+    createDateSchedule(displayDate(date))
+}
+
+function intHour(str) {
+    const strHour = str[0] + str[1]
+    return +strHour
+}
+
+function intMinute(str) {
+    const strMinute = str[3] + str[4]
+    return +strMinute
+}
+
+function getIndex(hour, minute) {
+    index = 0
+    if (minute >= 0 && minute <= 7.5) {
+        index = hour * 4
+    } else if (minute > 7.5 && minute <= 22.5) {
+        index = hour * 4 + 1
+    } else if (minute > 22.5 && minute <= 37.5) {
+        index = hour * 4 + 2
+    } else if (minute > 37.5 && minute <= 52.5) {
+        index = hour * 4 + 3
+    } else {
+        index = (hour + 1) * 4
+    }
+
+    return index
+}
+
 //前の月を表示
 prev.addEventListener('click', moveCalendar)
 
@@ -261,9 +322,9 @@ next.addEventListener('click', moveCalendar)
 //日をダブルクリックするとその日のサブウィンドウが表示
 document.addEventListener("dblclick", function(e) {
     if(e.target.classList.contains("calendar_td") || e.target.classList.contains("today_td")) {
+        reset()
         nowdate = e.target.dataset.date
-        ls["date"] = nowdate
-        window.open('date.html', 'mywindow1', 'width=400, height=600, menubar=no, toolbar=no, scrollbars=yes')
+        createDateSchedule(nowdate)
     }
 })
 
@@ -283,14 +344,11 @@ todayButton.addEventListener("click", () => {
 })
 
 dayButton.addEventListener("click", ()=>{
-    ls["date"] = displayDate(new Date)
-    window.open('date.html', 'mywindow1', 'width=400, height=600, menubar=no, toolbar=no, scrollbars=yes')
+    displayByDate()
+    //window.open('date.html', 'mywindow1', 'width=400, height=600, menubar=no, toolbar=no, scrollbars=yes')
 })
 
 function displayDate(date){
-    yearButton.classList.remove("active")
-    monthButton.classList.remove("active")
-    dayButton.classList.add("active")
     const year2 = date.getFullYear()
     const month2 = date.getMonth() + 1
     const date2 = date.getDate()
