@@ -1,0 +1,330 @@
+const weeks = ['日', '月', '火', '水', '木', '金', '土'] //曜日のリスト
+const date = new Date() //今日の日付
+let year = date.getFullYear() //年
+let month = date.getMonth() + 1 //月
+const calendar = document.getElementById("calendar") //idがcalendarのdiv
+const prev = document.getElementById("prev") //idがprevのボタン
+const next = document.getElementById("next") //idがnextのボタン
+const yearButton = document.getElementById("year") //idがyearのボタン
+const monthButton = document.getElementById("month") //idがmonthのボタン
+const todayButton = document.getElementById("today") //idがtodayのボタン
+const dayButton = document.getElementById("dayButton")
+
+const time = document.getElementById("time")
+const addButton = document.getElementById("add")
+let timeHtml = ""
+let scheduleHtml = ""
+
+let timeString = ""
+
+const config = {
+    show: 1,
+} //表示する月の数
+
+const ls = localStorage //ローカルストレージ
+ls["date"] = ""
+let nowdate = ""
+
+let isYear = 0 //年表示の時1、月表示の時に0
+
+//カレンダーを表示する関数
+function showCalendar(year, month) {
+    for (let i = 0; i < config.show; i++) {
+        const calendarHtml = createCalendar(year, month)
+        const sec = document.createElement('section')
+        sec.innerHTML = calendarHtml
+        calendar.appendChild(sec)
+        month++
+        if (month > 12) {
+            year++
+            month = 1
+        }
+    }
+
+}
+
+//毎日0:00にリロードする関数
+window.onload = function()
+{
+    const Time = new Date()
+    const nextDate = new Date(Time.getFullYear(), Time.getMonth(), Time.getDate() + 1)
+    Rest = nextDate - Time //ここがその残り時間(ミリ秒)を計算する処理
+    console.log(Rest)
+    setTimeout("location.reload()", Rest)
+};
+ 
+//現在時刻を返す関数
+
+
+//表示されているカレンダーを消去する関数
+function reset() {
+    const len = calendar.childNodes.length
+    for (let i = 0; i < len; i++) {
+        const element = calendar.childNodes[0]
+        calendar.removeChild(element)
+
+    }
+}
+
+//カレンダーを作成する関数
+function createCalendar(year, month) {
+    const startDate = new Date(year, month - 1, 1) // 月の最初の日を取得
+    const endDate = new Date(year, month,  0) // 月の最後の日を取得
+    const endDayCount = endDate.getDate() // 月の末日
+    const lastMonthEndDate = new Date(year, month - 2, 0) // 前月の最後の日の情報
+    const lastMonthendDayCount = lastMonthEndDate.getDate() // 前月の末日
+    const startDay = startDate.getDay() // 月の最初の日の曜日を取得
+    let dayCount = 1 // 日にちのカウント
+    let calendarHtml = '' // HTMLを組み立てる変数
+
+    const currentTime = new Date()
+    const currentYear = currentTime.getFullYear()
+    const currentMonth = currentTime.getMonth() + 1
+    const currentDate = currentTime.getDate()
+    calendarHtml += '<center>'
+    calendarHtml += '<h1>' + year  + '/' + month + '</h1>'
+    calendarHtml += "<table align='center' class='calendar'>"
+
+    // 曜日の行を作成
+    for (let i = 0; i < weeks.length; i++) {
+        calendarHtml += '<td>' + weeks[i] + '</td>'
+    }
+
+    for (let w = 0; w < 6; w++) {
+        calendarHtml += '<tr class="table">'
+
+        for (let d = 0; d < 7; d++) {
+            if (w == 0 && d < startDay) {
+                // 1行目で1日の曜日の前
+                let num = lastMonthendDayCount - startDay + d + 1
+                calendarHtml += '<td class="is-disabled">' + num + '</td>'
+            } else if (dayCount > endDayCount) {
+                // 末尾の日数を超えた
+                let num = dayCount - endDayCount
+                calendarHtml += '<td class="is-disabled">' + num + '</td>'
+                dayCount++
+            } else {
+                if (year == currentYear && month == currentMonth && dayCount == currentDate){
+                    calendarHtml += `<td class="today_td" data-date="${year}/${month}/${dayCount}">${dayCount}</td>`                    
+                } else {
+                    calendarHtml += `<td class="calendar_td" data-date="${year}/${month}/${dayCount}">${dayCount}</td>`
+                }
+                
+                dayCount++
+            }
+        }
+        calendarHtml += '</tr>'
+    }
+    calendarHtml += '</table>'
+    calendarHtml += '</center>'
+    return calendarHtml
+}
+/*
+function prevCalendar() {
+    if (isYear == 1) {
+        year--
+        showCalendar(year, 1)
+        const tdList = document.getElementsByTagName("table")
+        for (let i = 0, len = tdList.length; i < len; i++) {
+            tdList[i].classList.add("year")
+        }
+    }
+    else {
+        month--
+
+        if (month < 1) {
+            year--
+            month = 12
+        }
+        reset()
+        showCalendar(year, month)
+    }
+
+}
+
+function nextCalendar() {
+    if (isYear == 1) {
+        year++
+        showCalendar(year, 1)
+        const tdList = document.getElementsByTagName("table")
+        for (let i = 0, len = tdList.length; i < len; i++) {
+            tdList[i].classList.add("year")
+        }
+    }
+    else {
+        month++
+
+        if (month > 12) {
+            year++
+            month = 1
+        }
+        reset()
+        showCalendar(year, month)
+    }
+}
+*/
+
+//前の月のカレンダーや次の月のカレンダーを表示させる関数
+function moveCalendar(e) {
+    document.querySelector('#calendar').innerHTML = ''    
+    if (isYear == 1) {
+        if (e.target.id === 'prev') {
+            year--
+            showCalendar(year, 1)
+            const tdList = document.getElementsByTagName("table")
+            for (let i = 0, len = tdList.length; i < len; i++) {
+                tdList[i].classList.add("year")
+            }
+        } else if (e.target.id === 'next') {
+            year++
+            showCalendar(year, 1)
+            const tdList = document.getElementsByTagName("table")
+            for (let i = 0, len = tdList.length; i < len; i++) {
+                tdList[i].classList.add("year")
+            }
+        }
+        
+    } else {
+        if (e.target.id === 'prev') {
+            month--
+
+            if (month < 1) {
+                year--
+                month = 12
+            }
+        }
+
+        if (e.target.id === 'next') {
+            month++
+
+            if (month > 12) {
+                year++
+                month = 1
+            }
+        }
+        reset()
+        showCalendar(year, month)
+    }
+    
+}
+
+//今日のカレンダーを表示させる関数
+function displayToday() {
+    const today = new Date()
+    year = today.getFullYear()
+    month = today.getMonth() + 1
+    if (isYear == 1) {
+        reset()
+        showCalendar(year, 1)
+        const tdList = document.getElementsByTagName("table")
+        for (let i = 0, len = tdList.length; i < len; i++) {
+            tdList[i].classList.add("year")
+        }
+    } else {
+        reset()
+        showCalendar(year, month)
+    }
+}
+
+//カレンダーを年表示させる関数
+function displayByYear() {
+    yearButton.classList.add("active")
+    monthButton.classList.remove("active")
+    dayButton.classList.remove("active")
+    isYear = 1
+    config.show = 12
+    reset()
+    showCalendar(year, 1)
+    const tdList = document.getElementsByTagName("table")
+    for (let i = 0, len = tdList.length; i < len; i++) {
+        tdList[i].classList.add("year")
+    }
+}
+
+//カレンダーを月表示させる関数
+function displayByMonth() {
+    yearButton.classList.remove("active")
+    monthButton.classList.add("active")
+    dayButton.classList.remove("active")
+    isYear = 0
+    config.show = 1
+    reset()
+    showCalendar(year, month)
+}
+
+//前の月を表示
+prev.addEventListener('click', moveCalendar)
+
+//次の月を表示
+next.addEventListener('click', moveCalendar)
+
+//日をダブルクリックするとその日のサブウィンドウが表示
+document.addEventListener("dblclick", function(e) {
+    if(e.target.classList.contains("calendar_td") || e.target.classList.contains("today_td")) {
+        nowdate = e.target.dataset.date
+        ls["date"] = nowdate
+        window.open('date.html', 'mywindow1', 'width=400, height=600, menubar=no, toolbar=no, scrollbars=yes')
+    }
+})
+
+//年表示
+yearButton.addEventListener('click', () => {
+    displayByYear()
+})
+
+//月表示
+monthButton.addEventListener('click', () => {
+    displayByMonth()
+})
+
+//今日を表示
+todayButton.addEventListener("click", () => {
+    displayToday()
+})
+
+dayButton.addEventListener("click", ()=>{
+    ls["date"] = displayDate(new Date)
+    window.open('date.html', 'mywindow1', 'width=400, height=600, menubar=no, toolbar=no, scrollbars=yes')
+})
+
+function displayDate(date){
+    yearButton.classList.remove("active")
+    monthButton.classList.remove("active")
+    dayButton.classList.add("active")
+    const year2 = date.getFullYear()
+    const month2 = date.getMonth() + 1
+    const date2 = date.getDate()
+
+    return year2 + "/" + month2 + "/" + date2 
+}
+/*
+var sc = (function(){
+    var scrollElement = 'scrollingElement' in document ? document.scrollingElement : document.documentElement;
+    var scrollPoint,prePoint,flag;
+    return function(){
+        scrollPoint = scrollElement.scrollTop;
+        flag = prePoint > scrollPoint ? true : false;
+        prePoint = scrollPoint;
+        return flag;
+    }
+})();
+
+
+//使用方法
+window.addEventListener("scroll",function(){
+    let scrollElement = 'scrollingElement' in document ? document.scrollingElement : document.documentElement;
+    let scrollPoint = scrollElement.scrollTop
+    if(sc()){
+        if(scrollPoint > window.innerWidth * 0.95){
+            prevCalendar()
+        }
+    }else{
+        if (scrollPoint < window.innerWidth * 0.05) {
+            nextCalendar()
+        }
+    }
+});
+*/
+
+showCalendar(year, month)
+
