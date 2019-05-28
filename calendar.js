@@ -2,6 +2,7 @@ const weeks = ['日', '月', '火', '水', '木', '金', '土'] //曜日のリ�
 const date = new Date() //今日の日付
 let year = date.getFullYear() //年
 let month = date.getMonth() + 1 //月
+let day = date.getDate()
 const calendar = document.getElementById("calendar") //idがcalendarのdiv
 const prev = document.getElementById("prev") //idがprevのボタン
 const next = document.getElementById("next") //idがnextのボタン
@@ -12,19 +13,19 @@ const dayButton = document.getElementById("dayButton")
 const oneday = document.getElementById("oneday")
 const time = document.getElementById("time")
 const addButton = document.getElementById("add")
-let scheduleHtml = ""
-let timeString = ""
+
 
 const config = {
     show: 1,
+    unit: "month"
 } //表示する月の数
 
 const ls = localStorage //ローカルストレージ
 ls["date"] = ""
 let nowdate = ""
-
 let isYear = 0 //年表示の時1、月表示の時に0
 
+let isDate = 0
 //カレンダーを表示する関数
 function showCalendar(year, month) {
     for (let i = 0; i < config.show; i++) {
@@ -56,12 +57,9 @@ window.onload = function()
 
 //表示されているカレンダーを消去する関数
 function reset() {
-    const len = calendar.childNodes.length
-    for (let i = 0; i < len; i++) {
-        const element = calendar.childNodes[0]
-        calendar.removeChild(element)
-
-    }
+    oneday.textContent = ""
+    calendar.innerHTML = ""
+    time.innerHTML = ""
 }
 
 //カレンダーを作成する関数
@@ -103,9 +101,9 @@ function createCalendar(year, month) {
                 dayCount++
             } else {
                 if (year == currentYear && month == currentMonth && dayCount == currentDate){
-                    calendarHtml += `<td class="today_td" data-date="${year}/${month}/${dayCount}">${dayCount}</td>`                    
+                    calendarHtml += `<td class="today_td" data-date="${displayDate(new Date(year, month - 1, dayCount))}">${dayCount}</td>`                    
                 } else {
-                    calendarHtml += `<td class="calendar_td" data-date="${year}/${month}/${dayCount}">${dayCount}</td>`
+                    calendarHtml += `<td class="calendar_td" data-date="${displayDate(new Date(year, month - 1, dayCount))}">${dayCount}</td>`
                 }
                 
                 dayCount++
@@ -119,10 +117,13 @@ function createCalendar(year, month) {
 }
 
 function createDateSchedule(date) {
-    oneday.textContent = date
     let timeHtml = ""
+    oneday.textContent = date
+    
+    timeHtml += "<center>"
     timeHtml += "<table rules='cols' id='timetable'>"
 
+    oneday.textContent = date
     for(let i = 0; i < 96; i++) {
         const j = i.toString()
         if (i % 4 == 0) {
@@ -142,6 +143,7 @@ function createDateSchedule(date) {
 
     timeHtml += "<tr>" + "<td class='timetd'>" + "&nbsp&nbsp" + "0:00" + "</td>" + "<td class='schedule'>" + "<hr>" + "</td>" + "</tr>"
     timeHtml += "</table>"
+    timeHtml += "</center>"
     time.innerHTML = timeHtml
     console.log("hello")
 }
@@ -193,7 +195,7 @@ function nextCalendar() {
 //前の月のカレンダーや次の月のカレンダーを表示させる関数
 function moveCalendar(e) {
     document.querySelector('#calendar').innerHTML = ''    
-    if (isYear == 1) {
+    if (config.unit == "year") {
         if (e.target.id === 'prev') {
             year--
             showCalendar(year, 1)
@@ -210,7 +212,7 @@ function moveCalendar(e) {
             }
         }
         
-    } else {
+    } else if (config.unit == "month") {
         if (e.target.id === 'prev') {
             month--
 
@@ -230,6 +232,18 @@ function moveCalendar(e) {
         }
         reset()
         showCalendar(year, month)
+    } else if (config.unit == "date") {
+        if (e.target.id == 'prev') {
+            day--
+            const preday = displayDate(new Date(year, month - 1, day))
+            reset()
+            createDateSchedule(preday)
+        } else if (e.target.id == 'next') {
+            day++
+            const nextday = displayDate(new Date(year, month - 1, day))
+            reset()
+            createDateSchedule(nextday)
+        }
     }
     
 }
@@ -239,16 +253,20 @@ function displayToday() {
     const today = new Date()
     year = today.getFullYear()
     month = today.getMonth() + 1
-    if (isYear == 1) {
+    day = today.getDate()
+    if (config.unit == "year") {
         reset()
         showCalendar(year, 1)
         const tdList = document.getElementsByTagName("table")
         for (let i = 0, len = tdList.length; i < len; i++) {
             tdList[i].classList.add("year")
         }
-    } else {
+    } else if (config.unit == "month") {
         reset()
         showCalendar(year, month)
+    } else if (config.unit == "date") {
+        reset()
+        createDateSchedule(displayDate(new Date(year, month - 1, day)))
     }
 }
 
@@ -257,7 +275,7 @@ function displayByYear() {
     yearButton.classList.add("active")
     monthButton.classList.remove("active")
     dayButton.classList.remove("active")
-    isYear = 1
+    config.unit = "year"
     config.show = 12
     reset()
     showCalendar(year, 1)
@@ -272,13 +290,14 @@ function displayByMonth() {
     yearButton.classList.remove("active")
     monthButton.classList.add("active")
     dayButton.classList.remove("active")
-    isYear = 0
+    config.unit = "month"
     config.show = 1
     reset()
     showCalendar(year, month)
 }
 
 function displayByDate() {
+    config.unit = "date"
     yearButton.classList.remove("active")
     monthButton.classList.remove("active")
     dayButton.classList.add("active")
@@ -323,7 +342,9 @@ next.addEventListener('click', moveCalendar)
 document.addEventListener("dblclick", function(e) {
     if(e.target.classList.contains("calendar_td") || e.target.classList.contains("today_td")) {
         reset()
+        config.unit == "date"
         nowdate = e.target.dataset.date
+        day = getDate(nowdate)
         createDateSchedule(nowdate)
     }
 })
@@ -353,7 +374,34 @@ function displayDate(date){
     const month2 = date.getMonth() + 1
     const date2 = date.getDate()
 
-    return year2 + "/" + month2 + "/" + date2 
+    if (month2 < 10 && date2 < 10) {
+        return year2 + "/" + "0" + month2 + "/" + "0" + date2
+    } else if (month < 10 && date2 >= 10) {
+        return year2 + "/" + "0" + month2 + "/" + date2
+    } else if (month2 >= 10 && date2 < 10) {
+        return year2 + "/" + month2 + "/" + "0" + date2
+    } else {
+        return year2 + "/" + month2 + "/" + date2
+    }
+}
+
+function getYear(str) {
+    let year = ""
+    for (let i = 0; i < 4; i ++) {
+        year += str[i]
+    }
+
+    return +year
+}
+
+function getMonth(str) {
+    const month = str[5] + str[6]
+    return +month
+}
+
+function getDate(str) {
+    const day = str[8] + str[9]
+    return +day
 }
 /*
 var sc = (function(){
@@ -383,6 +431,7 @@ window.addEventListener("scroll",function(){
     }
 });
 */
+
 
 showCalendar(year, month)
 

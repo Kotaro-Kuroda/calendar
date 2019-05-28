@@ -138,3 +138,13 @@ span {
     right: 0;
     border-radius: 5px;
 }
+
+#add {
+    border-radius: 5px;
+}
+
+#time {
+    width: 33%;
+    position: relative;
+    left: 33%;
+}
