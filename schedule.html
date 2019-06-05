@@ -13,89 +13,10 @@
         <br>
         <span>終了時刻</span>:<input  id="enddate" type="date" name="enddate"><input id="endTime" type="time" name="endTime">
         <br>
-        <span>場所</span>:<input  type="text" name="place">
+        <span>場所</span>:<input  id="place" type="text" name="place">
         <br>
         <button id="complete">完了</button>
-        <script type="text/javascript">
-            const event = document.getElementById("event")
-            const startdate = document.getElementById("startdate")
-            const enddate = document.getElementById("enddate")
-            const startTime = document.getElementById("startTime")
-            const complete = document.getElementById("complete")
-
-            const ls = localStorage
-            const now = new Date()
-            
-            function timeFormat(date) {
-                let hour = date.getHours()
-                let minute = date.getMinutes()
-                if (hour < 10) {
-                hour = "0" + hour.toString()
-                } else {
-                    hour = hour.toString()
-                }
-
-                if (minute < 10) {
-                    minute = "0" + minute.toString()
-                } else {
-                    minute = minute.toString()
-                }
-                const timeString = hour + ":" + minute
-
-                return timeString
-            }
-            
-            startTime.value = timeFormat(now)
-            const next = now.setHours(now.getHours + 1)
-            const date = localStorage["date"]
-            let year = ""
-            for (let i = 0; i < 4; i++) {
-                year += date[i]
-            }
-
-            let month = ""
-            if (date[6] == "/") {
-                month += "0" + date[5]
-            } else {
-                month += date[5] + date[6]
-            }
-            let day = ""
-            if (date[6] == "/") {
-                if (date.length < 9) {
-                    day += "0" + date[7]
-                } else {
-                    day += date[7] + date[8]
-                }
-            } else {
-                if (date.length < 10) {
-                    day += "0" + day[8]
-                }
-                day += date[8] + date[9]
-            }
-            console.log(year)
-            console.log(month)
-            console.log(day)
-            const dateFormat = year + "-" + month + "-" + day
-            console.log(date)
-            startdate.value = dateFormat
-            enddate.value = dateFormat
-            console.log(endTime.value)
-            console.log(date)
-            complete.addEventListener("click", ()=>{
-                if(event.value == "") {
-                    alert("イベント名を入力してください")
-                }
-                if (endTime.value == "" || startTime.value == "") {
-                    alert("開始時刻と終了時刻を入力してください")
-                } else {
-                    ls[date + "event"] = event.value
-                    ls[date + "startTime"] = startTime.value
-                    ls[date + "endTime"] = endTime.value
-                    window.close(this)
-                    window.open('date.html', 'mywindow1', 'width=400, height=600, menubar=no, toolbar=no,scrollbars=yes')
-                } 
-                
-            })
+        <script type="text/javascript" src="schedule.js">
         </script>
     </div>
 </body>

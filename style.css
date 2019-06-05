@@ -6,6 +6,14 @@
     width: 100%;
     height: 100%;
 }
+#container {
+    display: flex;
+    justify-content: center; /* 子要素をflexboxにより中央に配置する */
+    align-items: center;  /* 子要素をflexboxにより中央に配置する */      /* インラインブロック要素にする */
+    flex-wrap: wrap;
+    width: 100%;
+    height: 100%;
+}
 
 section {
     margin: 10px;
@@ -21,22 +29,70 @@ table.calendar {
     width: 1000px;
     height: 580px;
 }
+
+td.calendar_td.yeartd {
+    text-align: center;
+}
+
+td.today_td.yeartd {
+    text-align: center;
+}
+
+td.is-disabled.yeartd {
+    text-align: center;
+}
+
 table.year {
     border-spacing: 0;
     border-collapse: collapse;
     width: 300px;
     height: 200px;
 }
+
+table.small {
+    border-spacing: 0;
+    border-collapse: collapse;
+    position: absolute;
+    right: 100px;
+    width: 300px;
+    height: 200px;
+}
+
+#timetable {
+    height: 100px;
+}
+
 td {
     border: 1px solid #ddd;
     padding: 5px;
-    text-align: center;
 }
 
 td.today_td {
+    vertical-align: top;
     background-color: yellow;
     color: black;
+    text-align: right;
+
 }
+
+
+td.week {
+    color: black;
+    text-align: center;
+}
+
+td.calendar_td {
+    vertical-align: top;
+    color: black;
+    text-align: right;
+}
+td.calendar_td.ref {
+    background-color: black;
+    color: white;
+    text-align: center;
+    vertical-align: top;
+}
+
 td:first-child {
     color: red;
 }
@@ -46,7 +102,9 @@ td:last-child {
 }
 
 td.is-disabled {
+    text-align: right;
     color: #ccc;
+    vertical-align: top;
 }
 
 #year {
@@ -100,13 +158,13 @@ td.is-disabled {
     background-color: #666666;
 }
 
-#time {
-    width: 100%;
-}
-
 td.timetd {
     border-top-style: none;
     border-bottom-style: none;
+    color: black;
+}
+td.schedule1 {
+
     color: black;
 }
 
@@ -128,9 +186,14 @@ span {
     width: 5em;
 }
 
+#delete {
+    text-align: right;
+}
 #box {
-    position: relative;
-    height: 160px;
+    position: absolute;
+    width: 300px;
+    top: 10px;
+    left: 5%;
 }
 #complete {
     position: absolute;
@@ -145,6 +208,20 @@ span {
 
 #time {
     width: 33%;
-    position: relative;
-    left: 33%;
+    position: absolute;
+    left: 25%;
+}
+
+#eventBox {
+    border: 1px solid #333333;
+    border-radius: 10px;
+}
+
+.delete {
+    position: absolute;
+    text-align: center;
+    right: 5px;
+    width: 50px;
+    height: 20px;
+    background-color: white;
 }

@@ -67,18 +67,4 @@ addButton.addEventListener("click", ()=>{
 
 const startTime = ls[date + "startTime"]
 const endTime = ls[date + "endTime"]
-const startHour = intHour(startTime)
-const startMinute = intMinute(startTime)
 
-const endHour = intHour(endTime)
-const endMinute = intMinute(endTime)
-
-const startIndex = getIndex(startHour, startMinute)
-const endIndex = getIndex(endHour, endMinute)
-
-const startId = document.getElementById(startIndex.toString())
-startId.innerHTML = ls[date + "event"]
-for (let i = startIndex; i < endIndex + 1; i++) {
-    const scheduleId = document.getElementById(i.toString())
-    scheduleId.classList.add("active")
-}
