@@ -14,6 +14,7 @@ const time = document.getElementById("time")
 const addButton = document.getElementById("add")
 const box = document.getElementById("box")
 let referingDay = displayDate(date)
+const eventDetail = document.getElementById("eventDetail")
 const config = {
     show: 1,
     unit: "month"
@@ -34,6 +35,9 @@ function showCalendar(year, month) {
             month = 1
         }
     }
+    const json = ls["schedule"] || "[]"
+    const list = JSON.parse(json)
+    updateview(list)
 
 }
 
@@ -52,6 +56,7 @@ function reset() {
     calendar.innerHTML = ""
     time.innerHTML = ""
     box.innerHTML = ""
+     eventDetail.innerHTML = ""
 }
 
 //カレンダーを作成する関数
@@ -108,16 +113,28 @@ function createCalendar(year, month) {
     return calendarHtml
 }
 
+function createEventDetail(str) {
+    const list = createListFromString(str)
+    console.log(list)
+    let display = "<div id='detailBox'>"
+    if (list[0] == list[1]) {
+        display += list[4] + "<br>" + list[5] + "<br>" + list[0].replace(/\-/g, "/") + getDay(list[0]) + "<span class='timeText'>" + list[2] + "~" + list[3] + "</span>"
+    }
+    display += "</div>"
+    eventDetail.innerHTML += display
+
+}
+
 //日単位のスケジュール表を作成
 function createDateSchedule(date) {
     let timeHtml = ""    
     timeHtml += "<center>"
-    timeHtml += `<h1>${date}</h1>`
+    timeHtml += `<h1>${date}<br>${getDay(date)}</h1>`
     timeHtml += "<table rules='cols' id='timetable'>"
     for(let i = 0; i < 97; i++) {
         const j = i.toString()
         if (i == 96) {
-                timeHtml += "<tr>" + "<td class='timetd'>" + "&nbsp&nbsp" + "0:00" + "</td>" + "<td class='schedule' id=" + date + j + ">" + "<hr>" + "</td>" + "</tr>"
+            timeHtml += "<tr class='schedule'>" + "<td class='timetd'>" + "&nbsp&nbsp" + "0:00" + "</td>" + "<td class='schedule' id=" + date + j + ">" + "<hr>" + "</td>" + "</tr>"
         } else {
             if (i % 4 == 0) {
             if(i >= 0 && i < 40) {
@@ -127,9 +144,9 @@ function createDateSchedule(date) {
                 timeString = (i / 4).toString() + ":" + "00"
             }
 
-            timeHtml += "<tr>" + "<td class='timetd'>" + timeString + "</td>" + "<td class='schedule' id=" + date + j + ">" + "<hr>" + "</td>" + "</tr>"
+            timeHtml += "<tr class='schedule'>" + "<td class='timetd'>" + timeString +  "</td>" + "<td class='schedule' id=" + date + j + ">" + "<hr>" + "</td>" + "</tr>"
             } else {
-                timeHtml += "<tr>" + "<td class='timetd'>" + "</td>" + "<td class='schedule' id=" + date + j + ">" + "</td>" + "</tr>"
+                timeHtml += "<tr class='schedule'>" + "<td class='timetd'>" + "</td>" + "<td class='schedule' id=" + date + j + ">" + "</td>" + "</tr>"
             }
         }
         
@@ -249,6 +266,7 @@ function displayByDate(d) {
     reset()
     createDateSchedule(d)
     showCalendar(getYear(d), getMonth(d))
+    
     const table = document.getElementsByTagName("table")
     for (let i = 0, len = table.length; i < len; i++) {
         table[i].classList.add("small")
@@ -283,33 +301,18 @@ function intMinute(str) {
 
 function getIndex(hour, minute) {
     index = 0
-    if (hour == 23) {
-        if (minute >= 0 && minute <= 7.5) {
-            index = hour * 4
-        } else if (minute > 7.5 && minute <= 22.5) {
-            index = hour * 4 + 1
-        } else if (minute > 22.5 && minute <= 37.5) {
-            index = hour * 4 + 2
-        } else if (minute > 37.5 && minute <= 52.5) {
-            index = hour * 4 + 3
-        } else {
-            index = (hour + 1) * 4
-        }
+    if (minute >= 0 && minute <= 7.5) {
+        index = hour * 4
+    } else if (minute > 7.5 && minute <= 22.5) {
+        index = hour * 4 + 1
+    } else if (minute > 22.5 && minute <= 37.5) {
+        index = hour * 4 + 2
+    } else if (minute > 37.5 && minute <= 52.5) {
+        index = hour * 4 + 3
     } else {
-        if (minute >= 0 && minute <= 7.5) {
-            index = hour * 4
-        } else if (minute > 7.5 && minute <= 22.5) {
-            index = hour * 4 + 1
-        } else if (minute > 22.5 && minute <= 37.5) {
-            index = hour * 4 + 2
-        } else if (minute > 37.5 && minute <= 52.5) {
-            index = hour * 4 + 3
-        } else {
-            index = (hour + 1) * 4
-        }
+        index = (hour + 1) * 4
     }
     
-
     return index
 }
 
@@ -332,6 +335,43 @@ document.addEventListener("dblclick", function(e) {
     }
 })
 
+document.addEventListener("click", function(e) {
+    if(e.target.classList.contains("assigned")) {
+        eventDetail.innerHTML = ""
+        createEventDetail(e.target.dataset.event)
+        console.log(e.target.dataset.event)
+    }
+})
+
+function createListFromString(str) {
+    const list = []
+    let a = ""
+    for (let i = 0, len = str.length; i < len; i++) {
+        if (str[i] != ",") {
+            a += str[i]
+        } else {
+            list.push(a)
+            a = ""
+        }
+
+        if (i == len - 1) {
+            list.push(a)
+        }
+    }
+    return list
+}
+document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("element")) {
+        const event = e.target.dataset.event
+        const list = createListFromString(event)
+        console.log(list)
+        let display = "" 
+        if (list[0] == list[1]) {
+            display += list[4] + "\n" + list[5] + "\n" + list[0].replace(/\-/g, "/") + "\t" + list[2] + "~" + list[3]
+        }
+        alert(display)
+    }
+})
 //年表示
 yearButton.addEventListener('click', () => {
     displayByYear()
@@ -373,30 +413,52 @@ dayButton.addEventListener("click", ()=>{
 })
 //年を取得
 function getYear(str) {
-    let year = ""
+    let thisYear = ""
     for (let i = 0; i < 4; i ++) {
-        year += str[i]
+       thisYear += str[i]
     }
 
-    return +year
+    return +thisYear
 }
 
 //月を取得
 function getMonth(str) {
-    const month = str[5] + str[6]
-    return +month
+    const thisMonth = str[5] + str[6]
+    return +thisMonth
 }
 
 //日を取得
 function getDate(str) {
-    const day = str[8] + str[9]
-    return +day
+    const thisDate = str[8] + str[9]
+    return +thisDate
 }
 
+function getDay(str) {
+    const thisYear = getYear(str)
+    const thisMonth = getMonth(str)
+    const thisDate = getDate(str)
+    const date1 = new Date(thisYear, thisMonth - 1, thisDate)
+    const thisDay = date1.getDay()
+    if (thisDay == 0) {
+        return "日曜日"
+    } else if (thisDay == 1) {
+        return "月曜日"
+    } else if (thisDay == 2) {
+        return "火曜日"
+    } else if (thisDay == 3) {
+        return "水曜日"
+    } else if (thisDay == 4) {
+        return "木曜日"
+    } else if (thisDay == 1) {
+        return "金曜日"
+    } else {
+        return "土曜日"
+    }
+}
 //イベント作成画面を表示
 function createEvent() {
     let eventHtml = ""
-    eventHtml +=  "<div id='eventBox'>" + "<span>イベント名</span>:<input id='event' type='text' name='event'>" +
+    eventHtml +=  "<div id='eventBox'>" + "<span>イベント名</span>:<input id='event' type='text' name='event'>" + "&nbsp&nbsp"  + "<button id='deleteButton' onclick='deleteEventBox()'> 削除</button>" +
         "<br>" +
         "<span>開始時刻</span>:<input id='startdate' type='date' name='startdate'><input id='startTime' type='time' name='startTime'>" +
         "<br>" +
@@ -450,6 +512,9 @@ function addEvent() {
         const start = startTimeForm.value
         const hour = intHour(start)
         const minute = intMinute(start)
+        if (hour == 23) {
+            endDateForm.value = addDay(endDate, 1).replace(/\//g, "-")
+        }
         endTimeForm.value = getTime(hour + 1, minute)
     })
 }
@@ -509,50 +574,80 @@ const deleteSchedule = (index)=>{
 
 
 function updateview(list) {
-    list.forEach((a, index) => {
-        const startDate = a[0]
-        const endDate = a[1]
-        if (a[0].replace(/\-/g, "/") == referingDay) {
-            const startTime = a[2]
-            const endTime = a[3]
-            const eventName = a[4]
-            const place = a[5]
-            const startHour = intHour(startTime)
-            const startMinute = intMinute(startTime)
-            const endHour = intHour(endTime)
-            const endMinute = intMinute(endTime)
-            const startIndex = getIndex(startHour, startMinute)
-            if (a[0] == a[1]) {
-                console.log("same")
-                console.log(a)
-                const endIndex = getIndex(endHour, endMinute)
-                const startId = document.getElementById(startDate.replace(/\-/g, "/") + startIndex.toString())
-                const endId = document.getElementById(endDate.replace(/\-/g, "/") + endIndex.toString())
-                startId.innerHTML = startTime + "<button class='delete' data-index=" + index + ">削除</button>"
-                for (let i = startIndex; i < endIndex + 1; i++) {
-                    const scheduleId = document.getElementById(startDate.replace(/\-/g, "/") + i.toString())
-                    if (i == Math.floor((endIndex + startIndex) / 2)) {    
-                        scheduleId.innerHTML += eventName 
+    if (config.unit == "date") {
+        list.forEach((a, index) => {
+            const startDate = a[0]
+            const endDate = a[1]
+            if (a[0].replace(/\-/g, "/") == referingDay) {
+                const startTime = a[2]
+                const endTime = a[3]
+                const eventName = a[4]
+                const place = a[5]
+                const startHour = intHour(startTime)
+                const startMinute = intMinute(startTime)
+                const endHour = intHour(endTime)
+                const endMinute = intMinute(endTime)
+                const startIndex = getIndex(startHour, startMinute)
+                if (a[0] == a[1]) {
+                    
+                    const endIndex = getIndex(endHour, endMinute)
+                    const startId = document.getElementById(startDate.replace(/\-/g, "/") + startIndex.toString())
+                    const endId = document.getElementById(endDate.replace(/\-/g, "/") + endIndex.toString())
+                    for (let i = startIndex; i < endIndex + 1; i++) {
+                        const scheduleId = document.getElementById(startDate.replace(/\-/g, "/") + i.toString())
+                        if (i == startIndex) {
+                            scheduleId.innerHTML = `<div class='assigned' data-event=${a}>${startTime}<button class='delete' data-index=${index}>削除</button></div>`
+                        } else if (i == Math.floor((endIndex + startIndex) / 2)) {
+                            if (i == startIndex) {
+                                scheduleId.innerHTML = `<div class='assigned' data-event=${a}>${startTime} ${eventName} <button class='delete' data-index=${index}>削除</button></div>`
+                            } else {
+                                scheduleId.innerHTML = `<div class='assigned' data-event=${a}>${eventName}</div>`
+                            } 
+                        } else {
+                            scheduleId.innerHTML = `<div class='assigned' data-event=${a}></div>`
+                        }
+                        scheduleId.classList.add("active")
+                        box.innerHTML = ""
                     }
-                    scheduleId.classList.add("active")
-                    box.innerHTML = ""
+                } else {
+                    list.splice(index, 1)
+                    const scheduleList = [startDate, startDate, startTime, "23:59", eventName, place]
+                    list.push(scheduleList)
+                    const def = deference(startDate, endDate)
+                    for (let i = 0; i < def - 1; i++) {
+                        const scheduleList1 = [addDay(startDate, i).replace(/\//g, "-"), addDay(startDate, i).replace(/\//g, "-"), "00:00", "23:59", eventName, place]
+                        list.push(scheduleList1)
+                    }
+                    const scheduleList2 = [endDate, endDate, "00:00", endTime, eventName, place]
+                    list.push(scheduleList2)
+                    const newJson = JSON.stringify(list)
+                    ls["schedule"] = newJson
                 }
-            } else {
-                list.splice(index, 1)
-                const scheduleList = [startDate, startDate, startTime, "23:59", eventName, place]
-                list.push(scheduleList)
-                const def = deference(startDate, endDate)
-                for (let i = 0; i < def - 1; i++) {
-                    const scheduleList1 = [addDay(startDate, i).replace(/\//g, "-"), addDay(startDate, i).replace(/\//g, "-"), "00:00", "23:59", eventName, place]
-                    list.push(scheduleList1)
+            } 
+    
+        })
+    } else if (config.unit == "month") {
+        const tdList = document.getElementsByTagName("td")
+        for (let i = 0, len = tdList.length; i < len; i++) {
+            const eventList = []
+            list.forEach((a, index) => {
+                if (tdList[i].dataset.date == a[0].replace(/\-/g, "/")) {
+                    eventList.push(a)
                 }
-                const scheduleList2 = [endDate, endDate, "00:00", endTime, eventName, place]
-                list.push(scheduleList2)
-                const newJson = JSON.stringify(list)
-                ls["schedule"] = newJson
+            })
+            let eventHtml = "<div class='event'>"
+            if (eventList.length != 0) {
+                eventList.forEach((a, index) => {
+                    eventHtml += `<div class="element" data-event=${a}>${a[4]}</div>`
+                })
+                eventHtml += "</div>"
+                tdList[i].innerHTML += eventHtml
             }
-        } 
-    })
+            
+    
+            
+        }
+    }
 }
 
 function addDay(day1, day2) {
@@ -574,6 +669,7 @@ function deference(day1, day2) {
 
     return deference
 }
+
 /*
 var sc = (function(){
     var scrollElement = 'scrollingElement' in document ? document.scrollingElement : document.documentElement;
@@ -602,7 +698,8 @@ window.addEventListener("scroll",function(){
     }
 });
 */
-
-
+function deleteEventBox() {
+    box.innerHTML = ""
+}
 showCalendar(year, month)
 

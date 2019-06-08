@@ -5,20 +5,26 @@
     <title>カレンダー</title>
     <meta charset="utf-8">
     <link rel="stylesheet" type="text/css" href="style.css">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.balloon.js"></script>
 </head>
 
 <body>
-    <center>
-        <button id="prev" type="button">⬅︎</button>
-        <button id="today">今日</button>
-        <button id="next" type="button">➡︎</button>
-        <button id="year" type="button">年</button><button id="month" type="button" class="active">月</button><button id="dayButton">日</button>
-        <button id="add">+</button>
-    </center>
-    <div id="calendar" align="center"></div>
-    <div id='box'>
-    </div>
-    <div id="time">
+    <div id="parent">
+        <center>
+            <button id="prev" type="button">⬅︎</button>
+            <button id="today">今日</button>
+            <button id="next" type="button">➡︎</button>
+            <button id="year" type="button">年</button><button id="month" type="button" class="active">月</button><button id="dayButton">日</button>
+            <button id="add">+</button>
+        </center>
+        <div id="calendar" align="center"></div>
+        <div id='box'>
+        </div>
+        <div id='eventDetail'>
+        </div>
+        <div id="time">
+        </div>
     </div>
     <script src="calendar.js"></script>
 </body>
