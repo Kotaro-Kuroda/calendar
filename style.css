@@ -7,6 +7,15 @@
     height: 100%;
 }
 
+#parent {
+    display: flex;
+    justify-content: center; /* 子要素をflexboxにより中央に配置する */
+    align-items: center;  /* 子要素をflexboxにより中央に配置する */      /* インラインブロック要素にする */
+    flex-wrap: wrap;
+    width: 100%;
+    height: 95%;
+    position: absolute;
+}
 /*
 #container {
     display: flex;
@@ -18,25 +27,34 @@
 }
 */
 
-section {
+section.year {
+    width: 20%;
+    height: 40%;
     margin: 10px;
+    display: flex;
+    justify-content: center; /* 子要素をflexboxにより中央に配置する */
+    align-items: center;  /* 子要素をflexboxにより中央に配置する */      /* インラインブロック要素にする */
+    flex-wrap: wrap;
+
 }
 
 h1 {
     font-size: 18px;
 }
 
-table.calendar {
+table.month {
     border-spacing: 0;
     border-collapse: collapse;
-    width: 1000px;
-    height: 580px;
+    width: 90%;
+    height: 90%;
+    position: absolute;
+    top: 0%;
+    left: 5%;
+    table-layout: fixed;
 }
 
 td.calendar_td.yeartd {
     text-align: center;
-    width: 20px;
-    height: 20px;
 }
 
 td.today_td.yeartd {
@@ -50,14 +68,15 @@ td.is-disabled.yeartd {
 table.year {
     border-spacing: 0;
     border-collapse: collapse;
-    width: 300px;
-    height: 200px;
+    width: 100%;
+    height: 100%;
 }
 
 table.small {
     border-spacing: 0;
     border-collapse: collapse;
     position: absolute;
+    top: 10px;
     right: 100px;
     width: 300px;
     height: 200px;
@@ -86,8 +105,6 @@ td.calendar_td {
     vertical-align: top;
     color: black;
     text-align: right;
-    width: 100px;
-    height: 100px;
 }
 td.calendar_td.ref {
     background-color: black;
@@ -168,10 +185,7 @@ td.timetd {
     border-bottom-style: none;
     color: black;
     font-size: 1px;
-}
-
-td.schedule1 {
-    color: black;
+    width: 20px;
 }
 
 td.schedule {
@@ -180,6 +194,7 @@ td.schedule {
     border-top-style: none;
     border-bottom-style: none;
     color: black;
+    width: 300px;
 }
 
 tr.schedule {
@@ -194,9 +209,9 @@ hr {
     width: 300px;
 }
 
-span {
+span.eventForm {
     display: inline-block;
-    width: 5em;
+    width: 10em;
 }
 
 #delete {
@@ -205,9 +220,13 @@ span {
 
 #box {
     position: absolute;
-    width: 300px;
+    left: 10px;
     top: 10px;
-    left: 5%;
+    width: 400px;
+    height: 150px;
+    border: 1px solid #333333;
+    border-radius: 10px;
+    background-color: silver;
 }
 
 #detailBox {
@@ -231,24 +250,37 @@ span {
 }
 
 #time {
-    width: 100%;
-    position: relative;
+    width: 25%;
+    height: 100%;
+    overflow-y: auto;
+    position: absolute;
+    left: 33%;
 }
 
-#timetable {
+#container1 {
+    width: 33%;
+    height: 100%;
     position: absolute;
-    left: 37%;
+    left: 0;
 }
-#eventBox {
-    border: 1px solid #333333;
-    border-radius: 10px;
-    background-color: silver;
+
+#container3 {
+    width: 33%;
+    height: 100%;
+    position: absolute;
+    left: 66%;
 }
+#timetable {
+    width: 90%;
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+
 
 .delete {
     position: absolute;
     text-align: center;
-    right: 5px;
+    right: 30px;
     width: 50px;
     height: 20px;
     background-color: white;
@@ -266,13 +298,14 @@ div.event {
 }
 
 div.assigned {
-    width: 100%;
+    width: 90%;
     font-size: 12px;
 }
 div.assigned:empty {
   height: 1.25em;
+
 }
 
-.timeText {
+span.timeText {
     margin-left: 50px;
 }

@@ -10,11 +10,11 @@ const yearButton = document.getElementById("year") //idがyearのボタン
 const monthButton = document.getElementById("month") //idがmonthのボタン
 const todayButton = document.getElementById("today") //idがtodayのボタン
 const dayButton = document.getElementById("dayButton")
-const time = document.getElementById("time")
 const addButton = document.getElementById("add")
 const box = document.getElementById("box")
 let referingDay = displayDate(date)
 const eventDetail = document.getElementById("eventDetail")
+const parent = document.getElementById("parent")
 const config = {
     show: 1,
     unit: "month"
@@ -23,12 +23,14 @@ const config = {
 const ls = localStorage //ローカルストレージ
 let nowdate = ""
 //カレンダーを表示する関数
-function showCalendar(year, month) {
+function showCalendar(year, month, className) {
     for (let i = 0; i < config.show; i++) {
         const calendarHtml = createCalendar(year, month)
         const sec = document.createElement('section')
+        sec.classList.add("year")
         sec.innerHTML = calendarHtml
-        calendar.appendChild(sec)
+        className.appendChild(sec)
+
         month++
         if (month > 12) {
             year++
@@ -53,10 +55,7 @@ window.onload = function()
  
 //表示されているカレンダーを消去する関数
 function reset() {
-    calendar.innerHTML = ""
-    time.innerHTML = ""
-    box.innerHTML = ""
-     eventDetail.innerHTML = ""
+    parent.innerHTML = ""
 }
 
 //カレンダーを作成する関数
@@ -74,8 +73,8 @@ function createCalendar(year, month) {
     const currentYear = currentTime.getFullYear()
     const currentMonth = currentTime.getMonth() + 1
     const currentDate = currentTime.getDate()
-    calendarHtml += '<center>'
-    calendarHtml += "<table align='center' class='calendar'>"
+    calendarHtml += "<div id='calendar'>" + '<center>'
+    calendarHtml += "<table align='center' class='calendar month'>"
     calendarHtml += '<caption>' + year  + '/' + month + '</caption>'
 
     // 曜日の行を作成
@@ -109,11 +108,11 @@ function createCalendar(year, month) {
         calendarHtml += '</tr>'
     }
     calendarHtml += '</table>'
-    calendarHtml += '</center>'
+    calendarHtml += '</center>' + "</div>"
     return calendarHtml
 }
 
-function createEventDetail(str) {
+function createEventDetail(str, className) {
     const list = createListFromString(str)
     console.log(list)
     let display = "<div id='detailBox'>"
@@ -121,16 +120,15 @@ function createEventDetail(str) {
         display += list[4] + "<br>" + list[5] + "<br>" + list[0].replace(/\-/g, "/") + getDay(list[0]) + "<span class='timeText'>" + list[2] + "~" + list[3] + "</span>"
     }
     display += "</div>"
-    eventDetail.innerHTML += display
+    className.innerHTML += display
 
 }
 
 //日単位のスケジュール表を作成
 function createDateSchedule(date) {
-    let timeHtml = ""    
-    timeHtml += "<center>"
-    timeHtml += `<h1>${date}<br>${getDay(date)}</h1>`
+    let timeHtml = "<div id='container1'><div id='box1'></div></div>" + "<div id='time'>"
     timeHtml += "<table rules='cols' id='timetable'>"
+    timeHtml += `<caption>${date}${getDay(date)}</caption>`
     for(let i = 0; i < 97; i++) {
         const j = i.toString()
         if (i == 96) {
@@ -152,15 +150,15 @@ function createDateSchedule(date) {
         
         
     }
-
-    timeHtml += "</table>"
-    timeHtml += "</center>"
-    time.innerHTML = timeHtml
+    
+    timeHtml += "</table>" + "</div>" + "<div id='container3'></div>"
+    const sec = document.createElement('section')
+    parent.innerHTML = timeHtml
 }
 
 //前の月のカレンダーや次の月のカレンダーを表示させる関数
 function moveCalendar(e) {
-    calendar.innerHTML = ''    
+    reset()
     if (config.unit == "year") {
         if (e.target.id === 'prev') {
             year--
@@ -228,11 +226,13 @@ function displayByYear() {
     config.unit = "year"
     config.show = 12
     reset()
-    showCalendar(year, 1)
+    showCalendar(year, 1, parent)
 
     const table = document.getElementsByTagName("table")
     for (let i = 0, len = table.length; i < len; i++) {
         table[i].classList.add("year")
+        table[i].classList.remove("month")
+
     }
 
     const td = document.getElementsByTagName("td")
@@ -249,7 +249,13 @@ function displayByMonth() {
     config.unit = "month"
     config.show = 1
     reset()
-    showCalendar(year, month)
+    showCalendar(year, month, parent)
+    const table = document.getElementsByTagName("table")
+    for (let i = 0, len = table.length; i < len; i++) {
+        table[i].classList.remove("year")
+        table[i].classList.add("month")
+
+    }
 }
 
 //カレンダーを日単位で表示
@@ -265,9 +271,9 @@ function displayByDate(d) {
     dayButton.classList.add("active")
     reset()
     createDateSchedule(d)
-    showCalendar(getYear(d), getMonth(d))
-    
-    const table = document.getElementsByTagName("table")
+    const container3 = document.getElementById('container3')
+    showCalendar(getYear(d), getMonth(d), container3)
+    const table = document.getElementsByClassName("calendar")
     for (let i = 0, len = table.length; i < len; i++) {
         table[i].classList.add("small")
     }
@@ -337,9 +343,9 @@ document.addEventListener("dblclick", function(e) {
 
 document.addEventListener("click", function(e) {
     if(e.target.classList.contains("assigned")) {
-        eventDetail.innerHTML = ""
-        createEventDetail(e.target.dataset.event)
-        console.log(e.target.dataset.event)
+        const box1 = document.getElementById('box1')
+        box1.innerHTML = ""
+        createEventDetail(e.target.dataset.event, box1)
     }
 })
 
@@ -457,20 +463,35 @@ function getDay(str) {
 }
 //イベント作成画面を表示
 function createEvent() {
-    let eventHtml = ""
-    eventHtml +=  "<div id='eventBox'>" + "<span>イベント名</span>:<input id='event' type='text' name='event'>" + "&nbsp&nbsp"  + "<button id='deleteButton' onclick='deleteEventBox()'> 削除</button>" +
+    displayByDate(referingDay)
+    const conteiner1 = document.getElementById('conteiner1')
+    let eventHtml = "<div id='box'>"
+    eventHtml +=  "<form id='eventBox' name='formName'>" + 
+        "<span class='eventForm'>イベント名</span>:<input id='event' type='text' name='event'>" + "&nbsp&nbsp" + "<button id='deleteButton' onclick='deleteEventBox()'>削除</button>" +
         "<br>" +
-        "<span>開始時刻</span>:<input id='startdate' type='date' name='startdate'><input id='startTime' type='time' name='startTime'>" +
+        "<span class='eventForm'>開始時刻</span>:<input id='startdate' type='date' name='startdate'><input id='startTime' type='time' name='startTime'>" +
         "<br>" +
-        "<span>終了時刻</span>:<input  id='enddate' type='date' name='enddate'><input id='endTime' type='time' name='endTime'>" +
+        "<span class='eventForm'>終了時刻</span>:<input id='enddate' type='date' name='enddate'><input id='endTime' type='time' name='endTime'>" +
         "<br>" +
-        "<span>場所</span>:<input  type='text' name='place' id='place'>" +
+        "<span class='eventForm'>目的地の最寄駅</span>:<input type'text' name='station id='station>" + 
         "<br>" +
-        "</div>" +
+        "<span class='eventForm'>最寄駅からの移動時間</span>:<select id='minute' name='minute'>" +
+        "<option value='none'>--分</option>" + 
+        "<option value='5'>5分</option>" + 
+        "<option value='10'>10分</option>" +
+        "<option value='15'>15分</option>" +
+        "<option value='20'>20分</option>" +
+        "<option value='customize' id='customize'>カスタム</option>" +
+        "</select><span class='customBox' id='customizedTime'></span>" +
         "<br>" +
-        "<button id='complete' onclick='completeButton()' >完了</button>"
+        "<span class='eventForm'>場所</span>:<input  type='text' name='place' id='place'>" +
+        "<br>" +
+        "</form>" +
+        "<br>" + 
+        "<button id='complete' onclick='completeButton()' >完了</button></div>" 
+        
 
-    box.innerHTML = eventHtml
+    container1.innerHTML = eventHtml
 }
 
 //時刻を取得
@@ -514,19 +535,51 @@ function addEvent() {
         const minute = intMinute(start)
         if (hour == 23) {
             endDateForm.value = addDay(endDate, 1).replace(/\//g, "-")
+        } else {
+            endTimeForm.value = getTime(hour + 1, minute)
         }
-        endTimeForm.value = getTime(hour + 1, minute)
+        
+    })
+
+    const select = document.formName.minute
+    select.addEventListener("change", () => {
+        const num = select.selectedIndex
+        const str = select.options[num].value;
+        let timeselect = ""
+        if (str == "customize") {
+            timeselect = `<form name='customizeForm'>
+            <input type='text' id='customTime' size='5'><select name='unit' id='unit'><option value='minute'>分</option><option value='hour'>時間</option></select>
+            <input type='button' value='ok' id='okButton' onclick="addMoveTime()"></form>`
+            document.getElementById("customizedTime").innerHTML = timeselect
+        }
+    })
+    
+
+    const cutomize = document.getElementById('customize')
+    console.log(customize)
+    customize.addEventListener("click", () => {
+        console.log("hello")
     })
 }
-
+function addMoveTime() {
+        const sel = document.formName.minute
+        const sel2 = document.getElementById("unit")
+        const num = sel2.selectedIndex
+        const val = sel2.options[num].textContent
+        console.log(sel)
+        const customTime = document.getElementById("customTime")
+        const option = document.createElement("option")
+        option.value = customTime.value.toString()
+        option.innerHTML = customTime.value + val
+        sel.insertBefore(option, sel.options[sel.length - 1])
+    }
 addButton.addEventListener("click", () => {
-    displayByDate(referingDay)
     addEvent()
     //window.open('schedule.html?date=' + encodeURIComponent(referingDay), 'mywindow1', 'width=400, height=600, menubar=no, toolbar=no, scrollbars=yes')
 })
 
 
-time.addEventListener("click", (e)=>{
+parent.addEventListener("click", (e)=>{
     if(e.target.classList.contains("delete")){
         const result = confirm("削除してよろしいですか？")
         if (result) {
@@ -537,6 +590,12 @@ time.addEventListener("click", (e)=>{
 
 //スケジュールをカレンダーに反映させる関数
 function completeButton() {
+
+    const select = document.formName.minute
+    const num = select.selectedIndex
+    console.log(num)
+    const str = select.options[num].value;
+    console.log(str)
     const eventNameForm = document.getElementById("event")
     const placeForm = document.getElementById("place")
     const startDateForm = document.getElementById("startdate")
@@ -607,17 +666,19 @@ function updateview(list) {
                             scheduleId.innerHTML = `<div class='assigned' data-event=${a}></div>`
                         }
                         scheduleId.classList.add("active")
-                        box.innerHTML = ""
                     }
                 } else {
                     list.splice(index, 1)
                     const scheduleList = [startDate, startDate, startTime, "23:59", eventName, place]
                     list.push(scheduleList)
-                    const def = deference(startDate, endDate)
-                    for (let i = 0; i < def - 1; i++) {
-                        const scheduleList1 = [addDay(startDate, i).replace(/\//g, "-"), addDay(startDate, i).replace(/\//g, "-"), "00:00", "23:59", eventName, place]
-                        list.push(scheduleList1)
+                    const deff = defference(startDate, endDate)
+                    if (deff > 1) {
+                        for (let i = 1; i < deff; i++) {
+                            const scheduleList1 = [addDay(startDate, i).replace(/\//g, "-"), addDay(startDate, i).replace(/\//g, "-"), "00:00", "23:59", eventName, place]
+                            list.push(scheduleList1)
+                        }
                     }
+                    
                     const scheduleList2 = [endDate, endDate, "00:00", endTime, eventName, place]
                     list.push(scheduleList2)
                     const newJson = JSON.stringify(list)
@@ -658,7 +719,7 @@ function addDay(day1, day2) {
     return displayDate(addDay)
 }
 
-function deference(day1, day2) {
+function defference(day1, day2) {
     const year1 = getYear(day1)
     const month1 = getMonth(day1)
     const date1 = getDate(day1)
@@ -701,5 +762,5 @@ window.addEventListener("scroll",function(){
 function deleteEventBox() {
     box.innerHTML = ""
 }
-showCalendar(year, month)
+showCalendar(year, month, parent)
 
