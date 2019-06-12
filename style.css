@@ -28,8 +28,6 @@
 */
 
 section.year {
-    width: 20%;
-    height: 40%;
     margin: 10px;
     display: flex;
     justify-content: center; /* 子要素をflexboxにより中央に配置する */
@@ -68,8 +66,8 @@ td.is-disabled.yeartd {
 table.year {
     border-spacing: 0;
     border-collapse: collapse;
-    width: 100%;
-    height: 100%;
+    width: 300px;
+    height: 200px;
 }
 
 table.small {
@@ -184,8 +182,9 @@ td.timetd {
     border-top-style: none;
     border-bottom-style: none;
     color: black;
-    font-size: 1px;
-    width: 20px;
+    width: 30px;
+    height: 10px;
+    font-size: 10px;
 }
 
 td.schedule {
@@ -195,11 +194,7 @@ td.schedule {
     border-bottom-style: none;
     color: black;
     width: 300px;
-}
-
-tr.schedule {
     height: 10px;
-    max-height: 10px
 }
 
 td.schedule.active {
@@ -222,8 +217,6 @@ span.eventForm {
     position: absolute;
     left: 10px;
     top: 10px;
-    width: 400px;
-    height: 150px;
     border: 1px solid #333333;
     border-radius: 10px;
     background-color: silver;
@@ -274,16 +267,21 @@ span.eventForm {
     width: 90%;
     border-spacing: 0;
     border-collapse: collapse;
+    position: absolute;
+    table-layout: fixed;
+    top: 0px;
+    left: 5%;
 }
 
 
 .delete {
     position: absolute;
     text-align: center;
-    right: 30px;
+    right: 10px;
     width: 50px;
-    height: 20px;
+    height: 10px;
     background-color: white;
+    font-size: 8px;
 }
 
 #deleteButton {
@@ -298,14 +296,23 @@ div.event {
 }
 
 div.assigned {
-    width: 90%;
-    font-size: 12px;
+    width: 100%;
+    font-size: 5px;
 }
 div.assigned:empty {
-  height: 1.25em;
-
+  height: 1em;
 }
 
 span.timeText {
     margin-left: 50px;
+}
+
+
+
+a.route {
+    color: black;
+}
+
+a.route:hover {
+    color: red;
 }
