@@ -1,4 +1,5 @@
 const weeks = ['日', '月', '火', '水', '木', '金', '土'] //曜日のリスト
+const moveTimeList = ["5分", "10分", "15分", "20分"]
 const date = new Date() //今日の日付
 let year = date.getFullYear() //年
 let month = date.getMonth() + 1 //月
@@ -468,9 +469,18 @@ function getDay(str) {
     }
 }
 //イベント作成画面を表示
-function createEvent() {
+function createEvent(list) {
     displayByDate(referingDay)
     const conteiner1 = document.getElementById('conteiner1')
+    let moveTimeHtml = ""
+
+    moveTimeList.forEach(a => {
+        moveTimeHtml += `<option>${a}</option>`
+    })
+
+    list.forEach(a => {
+        moveTimeHtml += `<option>${a}</option>`
+    })
     let eventHtml = "<div id='box'>"
     eventHtml +=  "<form id='eventBox' name='formName'>" + 
         "<span class='eventForm'>イベント名</span>:<input id='event' type='text' name='event'>" + "&nbsp&nbsp" + "<button id='deleteButton' onclick='deleteEventBox()'>削除</button>" +
@@ -483,10 +493,7 @@ function createEvent() {
         "<br>" +
         "<span class='eventForm'>最寄駅からの移動時間</span>:<select id='minute' name='minute'>" +
         "<option value='none'>--分</option>" + 
-        "<option>5分</option>" + 
-        "<option>10分</option>" +
-        "<option>15分</option>" +
-        "<option>20分</option>" +
+        moveTimeHtml +
         "<option value='customize' id='customize'>カスタム</option>" +
         "</select><span class='customBox' id='customizedTime'></span>" +
         "<br>" +
@@ -522,7 +529,9 @@ let startTime = 0
 let endTime = 0
 //イベントを作成
 function addEvent() {
-    createEvent()
+    const json = ls["moveTime"] || "[]"
+    const list = JSON.parse(json)
+    createEvent(list)
     const startDateForm = document.getElementById("startdate")
     const endDateForm = document.getElementById("enddate")
     const startTimeForm = document.getElementById("startTime")
@@ -535,6 +544,7 @@ function addEvent() {
     endDate = endDateForm.value
     startTime = startTimeForm.value
     endTime = endTimeForm.value
+
     startTimeForm.addEventListener("change", () => {
         const start = startTimeForm.value
         const hour = intHour(start)
@@ -547,15 +557,19 @@ function addEvent() {
         
     })
 
+    startDateForm.addEventListener("change", () => {
+        const start = startDateForm.value
+        endDateForm.value = start.replace(/\//g, "-")
+    })
     const select = document.formName.minute
     select.addEventListener("change", () => {
         const num = select.selectedIndex
         const str = select.options[num].value;
         let timeselect = ""
         if (str == "customize") {
-            timeselect = `<form name='customizeForm'>
+            timeselect = `<span id='customizeSpan'><form name='customizeForm'>
             <input type='text' id='customTime' size='5'><select name='unit' id='unit'><option value='minute'>分</option><option value='hour'>時間</option></select>
-            <input type='button' value='ok' id='okButton' onclick="addMoveTime()"></form>`
+            <input type='button' value='ok' id='okButton' onclick="addMoveTime()"></form></span>`
             document.getElementById("customizedTime").innerHTML = timeselect
         }
     })
@@ -566,18 +580,29 @@ function addEvent() {
         console.log("hello")
     })
 }
+
 function addMoveTime() {
-        const sel = document.formName.minute
-        const sel2 = document.getElementById("unit")
-        const num = sel2.selectedIndex
-        const val = sel2.options[num].textContent
-        console.log(sel)
-        const customTime = document.getElementById("customTime")
-        const option = document.createElement("option")
-        option.value = customTime.value.toString()
-        option.innerHTML = customTime.value + val
-        sel.insertBefore(option, sel.options[sel.length - 1])
+    const sel = document.formName.minute
+    const customizeSpan = document.getElementById("customizeSpan")
+    const json = ls["moveTime"] || "[]"
+    const list = JSON.parse(json)
+    const sel2 = document.getElementById("unit")
+    const num = sel2.selectedIndex
+    const val = sel2.options[num].textContent
+    const customTime = document.getElementById("customTime")
+    const moveTime = customTime.value + val
+    if (list.indexOf(moveTime) < 0 && moveTimeList.indexOf(moveTime) < 0) {
+        list.push(moveTime)
     }
+
+    const newJson = JSON.stringify(list);
+    ls["moveTime"] = newJson;
+    const option = document.createElement("option")
+    option.innerHTML = customTime.value + val
+    sel.insertBefore(option, sel.options[sel.length - 1])
+    sel.value = customTime.value + val
+    customizeSpan.innerHTML = ""
+}
 addButton.addEventListener("click", () => {
     addEvent()
     //window.open('schedule.html?date=' + encodeURIComponent(referingDay), 'mywindow1', 'width=400, height=600, menubar=no, toolbar=no, scrollbars=yes')
@@ -848,6 +873,10 @@ function routeSearch(list) {
         const endTime = schedule.endTime
         const origin = originalStation.value
         if (i == len - 1) {
+            if (i == 0 && origin != destination) {
+                const arrivalTime = timeDifference(startTime, moveTime).replace(":", "")
+                setURI(origin, destination, startDate, arrivalTime, "arrival")
+            }
             if (origin != destination) {
                 const departure = addTime(endTime, moveTime).replace(":", "")
                 setURI(destination, origin, startDate, departure, "departure")
@@ -906,6 +935,25 @@ function deleteEventBox() {
     box.innerHTML = ""
 }
 
+function toDate(intDate) {
+    let y = ""
+    for (let i = 0;i < 4; i++) {
+        y += intDate[i]
+    }
+
+    let m = ""
+    for (let i = 4; i < 6; i++) {
+        m += intDate[i]
+    }
+
+    let d = ""
+    for (let i = 6; i < 8; i++) {
+        d += intDate[i]
+    }
+
+    return y + "/" + m + "/" + d
+}
+
 function setURI(start, end, startDate, time, type) {
     fetch("http://api.ekispert.jp/v1/json/search/course/light?key=LE_mJQjMN29NhWXc&from=" 
                     + encodeURIComponent(start) 
@@ -919,9 +967,20 @@ function setURI(start, end, startDate, time, type) {
                     + type)
                 .then(res => res.json())
                 .then(json => {
-                    const container1 = document.getElementById("container1")
-                    const result = "<div class='route'><a class='route' target='_blank' href=" + json.ResultSet.ResourceURI + ">" + start + "から" + end + "へのルート検索" + "</a></div>"
-                    container1.innerHTML += result
+                    const hour = parseInt(time / 100)
+                    const minute = parseInt(time % 100)
+                    let index = ""
+                    if (type == "arrival") {
+                        index = getIndex(hour, minute) - 1
+                    } else {
+                        index = getIndex(hour, minute) + 1
+                        console.log(index)
+                    }
+                    const y = toDate(startDate)
+                    console.log(y)
+                    const scheduleId = document.getElementById(y + index.toString())
+                    console.log(scheduleId)
+                    scheduleId.innerHTML = "<span class='route'><a class='route' target='_blank' href=" + json.ResultSet.ResourceURI + ">" + start + "から" + end + "へのルート検索" + "</a></span>"
                 })
 }
 showCalendar(year, month, parent)

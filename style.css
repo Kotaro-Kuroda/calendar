@@ -132,6 +132,7 @@ td.is-disabled {
 }
 #month {
     margin: 0;
+    border-radius: 1px;
 }
 
 #dayButton {
@@ -307,7 +308,10 @@ span.timeText {
     margin-left: 50px;
 }
 
-
+span.route {
+    height: 80%;
+    font-size: 8px;
+}
 
 a.route {
     color: black;
