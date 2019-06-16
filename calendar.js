@@ -21,6 +21,7 @@ const config = {
     unit: "month"
 } //表示する月の数
 const num = 8
+const resetStation = document.getElementById("resetStation")
 
 const ls = localStorage //ローカルストレージ
 let nowdate = ""
@@ -66,6 +67,7 @@ window.onload = function()
     Rest = nextDate - Time //ここがその残り時間(ミリ秒)を計算する処理
     setTimeout("location.reload()", Rest)
     originalStation.value = ls["originalStation"] || ""
+
 }
  
 //表示されているカレンダーを消去する関数
@@ -122,14 +124,65 @@ function createCalendar(year, month) {
     return calendarHtml
 }
 
-function createEventDetail(str, className) {
-    const list = createListFromString(str)
-    let display = "<div id='detailBox'>"
-    display += list[0] + "<br>" + list[1] + "<br>" + list[2] + getDay(list[2]) + "<span class='timeText'>" + list[3] + "~" + list[4] + "</span>"
-    display += "</div>"
-    className.innerHTML += display
+function createEventDetail(map, className, list, index) {
+    const startDate = map.startDate.replace(/\//g, "-")
+    const endDate = map.endDate.replace(/\//g, "-")
+    const eventName = map.eventName
+    const place = map.place
+    const startTime = map.startTime
+    const endTime = map.endTime
+    const moveTime = map.moveTime
+    const station = map.station
+    
+    
+    let moveTimeHtml = ""
 
+    moveTimeList.forEach(a => {
+        moveTimeHtml += `<option>${a}</option>`
+    })
+
+    list.forEach(a => {
+        moveTimeHtml += `<option>${a}</option>`
+    })
+    let eventHtml = "<div id='box'>"
+    eventHtml +=  `<form id='eventBox' name='formName'>
+        <span class='eventForm'>イベント名</span>:<input id='event' type='text' name='event' value=${eventName}>&nbsp&nbsp<button id='deleteButton' onclick='deleteEventBox()'>削除</button>
+        <br>
+        <span class='eventForm'>開始時刻</span>:<input id='startdate' type='date' name='startdate', value=${startDate}><input id='startTime' type='time' name='startTime' value=${startTime}>
+        <br>
+        <span class='eventForm'>終了時刻</span>:<input id='enddate' type='date' name='enddate' value=${endDate}><input id='endTime' type='time' name='endTime' value=${endTime}>
+        <br>
+        <span class='eventForm'>目的地の最寄駅</span>:<input type'text' name='station' id='station' value=${station}>
+        <br>
+        <span class='eventForm'>最寄駅からの移動時間</span>:<select id='minute' name='minute' value=カスタム>
+        <option value='none'>--分</option>
+        ${moveTimeHtml}
+        <option id='customize'>カスタム</option>
+        </select><span class='customBox' id='customizedTime'></span>
+        <br>
+        <span class='eventForm'>場所</span>:<input  type='text' name='place' id='place' value=${place}>
+        <br>
+        </form>
+        <br>
+        <button id='change'>変更</button></div>`
+
+
+        className.innerHTML = eventHtml 
+        const sel = document.getElementById("minute")
+        sel.value = moveTime
+        const chang = document.getElementById("change")
+
+        change.addEventListener("click", () => {
+            completeButton()
+            deleteSchedule(index)
+
+        })
+        
 }
+
+
+
+ 
 
 //日単位のスケジュール表を作成
 function createDateSchedule(date) {
@@ -352,9 +405,14 @@ document.addEventListener("dblclick", function(e) {
 document.addEventListener("click", function(e) {
     if(e.target.classList.contains("assigned")) {
         const box1 = document.getElementById('box1')
-        const list = e.target.dataset.event
+        const map = JSON.parse(e.target.dataset.event)
+        const assigned = document.getElementsByClassName("delete")
+        const index = assigned[0].dataset.index
+        console.log(index)
         box1.innerHTML = ""
-        createEventDetail(list, box1)
+        const json = ls["moveTime"] || "[]"
+        const list = JSON.parse(json)
+        createEventDetail(map, box1, list, index)
     }
 })
 
@@ -378,10 +436,10 @@ function createListFromString(str) {
 document.addEventListener("click", function(e) {
     if (e.target.classList.contains("element")) {
         const event = e.target.dataset.event
-        const list = createListFromString(event)
-        console.log(list)
+        console.log(event)
+        const map = JSON.parse(event)
         let display = "" 
-        display += list[0] + "\n" + list[1] + "\n" + list[2] + "\t" + list[3] + "~" + list[4]
+        //display += list[0] + "\n" + list[1] + "\n" + list[2] + "\t" + list[3] + "~" + list[4]
         alert(display)
     }
 })
@@ -577,7 +635,6 @@ function addEvent() {
 
     const cutomize = document.getElementById('customize')
     customize.addEventListener("click", () => {
-        console.log("hello")
     })
 }
 
@@ -620,7 +677,9 @@ parent.addEventListener("click", (e)=>{
 
 //スケジュールをカレンダーに反映させる関数
 function completeButton() {
-
+    if (originalStation.value == "") {
+        alert("自宅の最寄り駅を入力してください")
+    }
     const select = document.formName.minute
     const num = select.selectedIndex
     const str = select.options[num].value;
@@ -646,7 +705,6 @@ function completeButton() {
         const json = ls["scheduleMap"] || "[]"
         const list = JSON.parse(json)
         list.push(scheduleMap)
-        console.log(getSchedule(list, referingDay))
         const newJson = JSON.stringify(list);
         ls["scheduleMap"] = newJson;
         updateview2(list)
@@ -755,6 +813,7 @@ function displayString(map) {
     const eventName = map.eventName
     const place = map.place
     const startDate = map.startDate
+    const endDate = map.endDate
     const startTime = map.startTime
     const endTime = map.endTime
     let list = []
@@ -788,15 +847,15 @@ function updateview2(list) {
                     for (let i = startIndex; i < endIndex + 1; i++) {
                         const scheduleId = document.getElementById(startDate + i.toString())
                         if (i == startIndex) {
-                            scheduleId.innerHTML = `<div class='assigned' data-event=${displayString(map)}>${startTime}<button class='delete' data-index=${index}>削除</button></div>`
+                            scheduleId.innerHTML = `<div class='assigned' data-event=${JSON.stringify(map)}>${startTime}<button class='delete' data-index=${index}>削除</button></div>`
                         } else if (i == Math.floor((endIndex + startIndex) / 2)) {
                             if (i == startIndex) {
-                                scheduleId.innerHTML = `<div class='assigned' data-event=${displayString(map)}>${startTime} ${eventName} <input type='button' class='delete' data-index=${index} value='削除'></div>`
+                                scheduleId.innerHTML = `<div class='assigned' data-event=${JSON.stringify(map)}>${startTime} ${eventName} <input type='button' class='delete' data-index=${index} value='削除'></div>`
                             } else {
-                                scheduleId.innerHTML = `<div class='assigned' data-event=${displayString(map)}>${eventName}</div>`
+                                scheduleId.innerHTML = `<div class='assigned' data-event=${JSON.stringify(map)}>${eventName}</div>`
                             } 
                         } else {
-                            scheduleId.innerHTML = `<div class='assigned' data-event=${displayString(map)}></div>`
+                            scheduleId.innerHTML = `<div class='assigned' data-event=${JSON.stringify(map)}></div>`
                         }
                         scheduleId.classList.add("active")
                     }
@@ -974,13 +1033,15 @@ function setURI(start, end, startDate, time, type) {
                         index = getIndex(hour, minute) - 1
                     } else {
                         index = getIndex(hour, minute) + 1
-                        console.log(index)
                     }
                     const y = toDate(startDate)
-                    console.log(y)
                     const scheduleId = document.getElementById(y + index.toString())
-                    console.log(scheduleId)
                     scheduleId.innerHTML = "<span class='route'><a class='route' target='_blank' href=" + json.ResultSet.ResourceURI + ">" + start + "から" + end + "へのルート検索" + "</a></span>"
                 })
 }
+
+resetStation.addEventListener("click", () => {
+    ls["originalStation"] = ""
+    originalStation.value = ls["originalStation"]
+})
 showCalendar(year, month, parent)
