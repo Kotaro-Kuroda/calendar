@@ -1,3 +1,5 @@
+
+
 #calendar {
     display: flex;
     justify-content: center; /* 子要素をflexboxにより中央に配置する */
@@ -319,4 +321,12 @@ a.route {
 
 a.route:hover {
     color: red;
+}
+
+button {
+    background-color: white;
+}
+
+input[type="button"] {
+    background-color: white;
 }
